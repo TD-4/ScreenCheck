@@ -32,7 +32,7 @@ class ScreenCheckDataLoader(DataLoader):
 
         self.dataset = ScreenCheckDataset(**kwargs)
 
-        super(ScreenCheckDataLoader, self).__init__(self.dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        super(ScreenCheckDataLoader, self).__init__(self.dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, drop_last=True)
 
 
 class ScreenCheckDataset(Dataset):
