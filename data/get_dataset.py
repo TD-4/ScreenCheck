@@ -5,6 +5,8 @@ from loguru import logger
 import shutil
 import random
 import datetime
+import numpy as np
+import cv2
 
 
 def change_folder_name_by_ref(path=""):
@@ -62,16 +64,81 @@ def gen_train_val_list(path=""):
 
 
 def check_dataset(path=""):
+    count_id = {}
     for folder in os.listdir(os.path.join(path)):
-        print(".", end="")
+        #print(".", end="")
         temp = [im[0] for im in os.listdir(os.path.join(path, folder)) if im[-4:] == ".bmp"]
         for i, img_p in enumerate(os.listdir(os.path.join(path, folder))):
             if str(i) not in temp:
                 print(os.path.join(folder))
 
+        if len(temp) != 9:
+            print(os.path.join(folder))
+
+
+
+def aug_data(path=""):
+    # 先扩充每一组为10张图片
+    for folder in os.listdir(os.path.join(path)):
+        temp = [im[:-4] for im in os.listdir(os.path.join(path, folder)) if im[-4:] == ".bmp"]
+        img_h = 0
+        img_w = 0
+        # 检查此时文件夹中的数据是否是0到9，按顺序的
+        for i, img_p in enumerate(os.listdir(os.path.join(path, folder))):
+            image = cv2.imdecode(np.fromfile(os.path.join(path,folder, img_p),dtype=np.uint8),-1)
+            img_h  = image.shape[0]
+            img_w  = image.shape[1]
+            if str(i) not in temp:
+                print(os.path.join(folder), " 文件排序错误！！！")
+
+        add_id = len(temp)
+        while add_id < 10:
+            img = np.zeros((img_h, img_w, 3), np.uint8)
+            cv2.imencode('.jpg', img)[1].tofile(os.path.join(path, folder, str(add_id) + ".bmp"))
+            add_id +=1
+
+    total_num = 0
+    all_group = os.listdir(path)
+    for one_group in all_group:  # 一组
+        real_label = one_group.split("_")[-1]   # eg. 1
+        all_images_p = os.listdir(os.path.join(path, one_group))
+        add_num = 0
+        for _ in range(100):     # 增强10次
+            random.shuffle(all_images_p)
+            random.shuffle(all_images_p)
+            aug_label = "tmp"
+            aug_path = os.path.join(path, one_group.split("_")[0] + "_" + aug_label)
+            os.mkdir(aug_path)
+            for i, img_p in enumerate(all_images_p):
+                shutil.copy(os.path.join(path, one_group, img_p), os.path.join(aug_path, str(i)+".bmp"))
+                if real_label == img_p[:-4]:
+                    aug_label = str(i)
+
+            # 是否保留增强内容
+            if aug_label == real_label:
+                # 删除
+                shutil.rmtree(os.path.join(aug_path))
+            elif aug_label in [m.split("_")[-1] for m in os.listdir(os.path.join(path)) if m.startswith(one_group.split("_")[0])]:
+                shutil.rmtree(os.path.join(aug_path))
+            else:
+                os.rename(aug_path,aug_path.split("_")[0]+"_"+ aug_label)
+                add_num += 1
+        print("{} 文件夹增加了 {}".format(one_group, add_num))
+        total_num += add_num
+    print("----- 文件夹增加了 {}-----".format(total_num))
+
+
+
 
 if __name__ == "__main__":
-    path = r"D:\DataSets\iqa\hyperIQA\screencheck"
+    # path = [r"D:\Downloads\点灯复核数据集\2-BMDT\3-标签-完成-重命名-打乱",
+    #         r"D:\Downloads\点灯复核数据集\3-莱宝\3-标签-完成-重命名-打乱",
+    #         r"D:\Downloads\点灯复核数据集\4-南昌精卓\3-标签-完成-重命名-打乱",
+    #         r"D:\Downloads\点灯复核数据集\5-武汉华星\3-标签-完成-重命名-打乱",
+    #         r"D:\Downloads\点灯复核数据集\6-其他10层\3-标签-完成-重命名-打乱",
+    #         r"D:\Downloads\点灯复核数据集\7-其他9层\3-标签-完成-重命名-打乱"]
+
+    path = [r"D:\Downloads\点灯复核数据集\10_ScreenCheck_20211021_merge_random"]
     # -------------修改文件夹名--------------------
     # 1、原来数据集是按照每张图评分的，而且最高分后缀为“_ref"，所以此函数是将文件夹修改名称，把分数最高的ID放到文件夹名字的后面
     # change_folder_name_by_ref(r"D:\trainval - 副本 (2)\20210922_LaiBao")
@@ -82,7 +149,12 @@ if __name__ == "__main__":
     # 2、修改文件夹中每张图片，使之变成id.bmp
     #change_one_image(path)
 
-    check_dataset(path)
+    #check_dataset(path)
+
+    # 3、增强
+    # for p in path:
+    #     aug_data(p)
     # 3、生成train val list
-    gen_train_val_list(path)
+    for p in path:
+        gen_train_val_list(p)
     pass
