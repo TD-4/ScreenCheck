@@ -21,8 +21,9 @@ from models.model import HyperNet, TargetNet
 class HyperIQASolver(object):
     """Solver for training and testing hyperIQA"""
     def __init__(self, args):
+        self.args = args
         self.epochs = args.epochs
-        self.device = torch.device('cuda:2' if torch.cuda.device_count() > 0 else 'cpu')
+        self.device = torch.device('cuda:1' if torch.cuda.device_count() > 0 else 'cpu')
         # 1、数据加载
         kwargs = {
             'data_dir': args.dataset,
@@ -38,7 +39,7 @@ class HyperIQASolver(object):
         }
         self.train_loader = DataPrefetcher(ScreenCheckDataLoader(**kwargs), device=self.device)
         kwargs['val'] = True
-        kwargs['batch_size'] = 1
+        #kwargs['batch_size'] = 1
         self.val_loader = DataPrefetcher(ScreenCheckDataLoader(**kwargs), device=self.device)
 
         # 2、模型
@@ -108,12 +109,12 @@ class HyperIQASolver(object):
                 best_srcc = test_srcc
                 best_plcc = test_plcc
                 print("Saving pth .........")
-                torch.save(self.model_hyper.state_dict(), os.path.join("./pretrained/ScreenCheck_{}_{}.pth".format(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')), t)))
+                torch.save(self.model_hyper.state_dict(), os.path.join(self.args.store, "ScreenCheck_{}_{}.pth".format(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')), t)))
             print('Epoch\tTrain_Loss\tTrain_SRCC\tTest_SRCC\tTest_PLCC')
             print('%d\t%4.3f\t\t%4.4f\t\t%4.4f\t\t%4.4f' %  (t + 1, sum(epoch_loss) / len(epoch_loss), train_srcc, test_srcc, test_plcc))
 
             # Update optimizer
-            lr = self.lr / pow(10, (t // 6))
+            lr = self.lr / pow(10, (t // 20))   # 每20epochs, 降低lr = lr/10
             if t > 8:
                 self.lrratio = 1
             paras = [{'params': self.hypernet_params, 'lr': lr * self.lrratio},
@@ -152,7 +153,7 @@ class HyperIQASolver(object):
 if __name__ == '__main__':
     # PARSE THE ARGS
     parser = argparse.ArgumentParser(description='ScreenCheck PyTorch Training')
-    parser.add_argument('--dataset', default=r'/root/data/datasets/iqa/screencheck_20211018', type=str, help='dataset path')
+    parser.add_argument('--dataset', default=r'/root/data/datasets/iqa/screencheck_20211020_random', type=str, help='dataset path')
 
     parser.add_argument('--lr', dest='lr', type=float, default=2e-5, help='Learning rate。主干网络的学习率')
     parser.add_argument('--weight_decay', dest='weight_decay', type=float, default=5e-4, help='Weight decay')
@@ -160,6 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--batchsize', dest='batchsize', type=int, default=8, help='Batch size。 batchsize大小')
     parser.add_argument('--epochs', dest='epochs', type=int, default=1000, help='Epochs for training')
     parser.add_argument('--resume', dest='resume', type=str, default=None, help='weight from other dataset')
+    parser.add_argument('--store', dest='store', type=str, default="pretrained", help=' save path')
     args = parser.parse_args()
 
     solver = HyperIQASolver(args)
