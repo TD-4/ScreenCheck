@@ -23,7 +23,7 @@ class HyperIQASolver(object):
     def __init__(self, args):
         self.args = args
         self.epochs = args.epochs
-        self.device = torch.device('cuda:1' if torch.cuda.device_count() > 0 else 'cpu')
+        self.device = torch.device('cuda:{}'.format(args.cuda) if torch.cuda.device_count() > 0 else 'cpu')
         # 1、数据加载
         kwargs = {
             'data_dir': args.dataset,
@@ -162,6 +162,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', dest='epochs', type=int, default=1000, help='Epochs for training')
     parser.add_argument('--resume', dest='resume', type=str, default=None, help='weight from other dataset')
     parser.add_argument('--store', dest='store', type=str, default="pretrained", help=' save path')
+    parser.add_argument('--cuda', dest='cuda', type=str, default="0", help=' save path')
     args = parser.parse_args()
 
     solver = HyperIQASolver(args)
