@@ -39,7 +39,7 @@ class HyperIQASolver(object):
         }
         self.train_loader = DataPrefetcher(ScreenCheckDataLoader(**kwargs), device=self.device)
         kwargs['val'] = True
-        #kwargs['batch_size'] = 1
+        kwargs['batch_size'] = 1
         self.val_loader = DataPrefetcher(ScreenCheckDataLoader(**kwargs), device=self.device)
 
         # 2、模型
@@ -153,12 +153,12 @@ class HyperIQASolver(object):
 if __name__ == '__main__':
     # PARSE THE ARGS
     parser = argparse.ArgumentParser(description='ScreenCheck PyTorch Training')
-    parser.add_argument('--dataset', default=r'/root/data/datasets/iqa/screencheck_20211020_random', type=str, help='dataset path')
+    parser.add_argument('--dataset', default=r'/root/data/datasets/iqa/9_ScreenCheck_20211021_merge', type=str, help='dataset path')
 
     parser.add_argument('--lr', dest='lr', type=float, default=2e-5, help='Learning rate。主干网络的学习率')
     parser.add_argument('--weight_decay', dest='weight_decay', type=float, default=5e-4, help='Weight decay')
     parser.add_argument('--lr_ratio', dest='lr_ratio', type=int, default=10, help='Learning rate ratio for hyper network。主干网络*lr_ratio是hypernet的学习率')
-    parser.add_argument('--batchsize', dest='batchsize', type=int, default=8, help='Batch size。 batchsize大小')
+    parser.add_argument('--batchsize', dest='batchsize', type=int, default=96, help='Batch size。 batchsize大小')
     parser.add_argument('--epochs', dest='epochs', type=int, default=1000, help='Epochs for training')
     parser.add_argument('--resume', dest='resume', type=str, default=None, help='weight from other dataset')
     parser.add_argument('--store', dest='store', type=str, default="pretrained", help=' save path')
