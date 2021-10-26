@@ -138,16 +138,16 @@ if __name__ == "__main__":
     #         r"D:\Downloads\点灯复核数据集\6-其他10层\3-标签-完成-重命名-打乱",
     #         r"D:\Downloads\点灯复核数据集\7-其他9层\3-标签-完成-重命名-打乱"]
 
-    path = [r"D:\Downloads\点灯复核数据集\10_ScreenCheck_20211021_merge_random"]
+    path = r"D:\Downloads\点灯复核数据集\12_莱宝第2批9_15\3-标签-完成-重命名"
     # -------------修改文件夹名--------------------
     # 1、原来数据集是按照每张图评分的，而且最高分后缀为“_ref"，所以此函数是将文件夹修改名称，把分数最高的ID放到文件夹名字的后面
     # change_folder_name_by_ref(r"D:\trainval - 副本 (2)\20210922_LaiBao")
     # 1、2021-09-26 22.03.32.482_治具1_屏0__白画面缺陷_BlackDot缺陷_X1664_Y994_23040676TXP179100SY6179XXXXN179E179XXXXX----8
-    #change_folder_name_by_line(path)
+    change_folder_name_by_line(path)
 
     # ------------修改图片名----------------------
     # 2、修改文件夹中每张图片，使之变成id.bmp
-    #change_one_image(path)
+    change_one_image(path)
 
     #check_dataset(path)
 
@@ -155,6 +155,6 @@ if __name__ == "__main__":
     # for p in path:
     #     aug_data(p)
     # 3、生成train val list
-    for p in path:
-        gen_train_val_list(p)
+    # for p in path:
+    #     gen_train_val_list(p)
     pass

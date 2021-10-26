@@ -17,6 +17,10 @@ import datetime
 import torch
 from torchvision import transforms
 import onnxruntime as ort
+import shutil
+import sys
+
+sys.setrecursionlimit(5000)
 
 
 def regression_(path="", model_pth=""):
@@ -159,6 +163,10 @@ class ImgTag(QtWidgets.QMainWindow):
 
         result_list.append(res_list)
 
+        error_path = os.path.join(self.model_path, "error_group")
+        if not os.path.exists(error_path):
+            os.mkdir(error_path)
+
         # 处理所有图片
         for i, img_group in enumerate(datasets):    # 每一组图片
             res_list = []
@@ -178,6 +186,8 @@ class ImgTag(QtWidgets.QMainWindow):
                                        )
                 else:
                     print("Model Type Error")
+                if int(img_group.split("_")[-1]) != int(pred) and not os.path.exists(os.path.join(error_path, model, img_group + "----" + str(pred))):
+                    shutil.copytree(os.path.join(self.dataset_path, img_group), os.path.join(error_path, model, img_group + "----" + str(pred)))
                 # 设置状态栏 图片数量信息
                 text_info = "Model:{}  ;  img:{} - pred:{} .................... {} / {}".format(model, img_group, str(pred),  i + 1, str(len(datasets)))
                 self.status.setText(text_info)
@@ -187,7 +197,7 @@ class ImgTag(QtWidgets.QMainWindow):
 
             result_list.append(res_list)    # 将本组图片的处理结果存放到result_list中，供后续存入Excel
             QtWidgets.QApplication.processEvents()
-            #print("处理完 {} ---- {}".format(img_group, str(res_list[-1])))
+            print("{}.............{} / {}.............".format(img_group, i, len(datasets)))
         # 写入excel文件
         dest_path = os.path.join(self.model_path, datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".xls")
         write_excel_xls(dest_path, sheet_name="assess", value=result_list)
